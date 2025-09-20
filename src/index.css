@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Add xs breakpoint for extra small screens */
+@layer utilities {
+  @variants responsive {
+    /* Extra small screen / phone */
+    @media (min-width: 375px) {
+      .xs\:block {
+        display: block;
+      }
+      .xs\:hidden {
+        display: none;
+      }
+      /* Add other xs utilities as needed */
+    }
+  }
+}
+
 /* Optimize rendering performance */
 * {
   -webkit-font-smoothing: antialiased;
@@ -50,5 +66,25 @@
   50% {
     opacity: 0.9;
     transform: scale(1.05);
+  }
+}
+
+/* Mobile viewport height fix */
+@supports (-webkit-touch-callout: none) {
+  .h-screen {
+    height: -webkit-fill-available;
+  }
+}
+
+/* Responsive media queries */
+@media (max-width: 374px) {
+  html {
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 375px) and (max-width: 640px) {
+  html {
+    font-size: 14px;
   }
 }

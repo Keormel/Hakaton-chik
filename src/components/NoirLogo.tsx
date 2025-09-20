@@ -151,9 +151,9 @@ export const NoirLogo = ({
     // Base scale + voice-reactive component
     return 1 + voiceLevel * 0.3;
   };
-  return <div className="flex flex-col items-center">
+  return <div className="flex flex-col items-center px-3 xs:px-4">
       {/* Logo container with click handler */}
-      <div className="relative w-64 h-64 md:w-80 md:h-80 cursor-pointer" onClick={handleToggleVoiceChat}>
+      <div className="relative w-36 h-36 xs:w-44 xs:h-44 sm:w-48 sm:h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 cursor-pointer" onClick={handleToggleVoiceChat}>
         {/* Main logo image with reactive styling */}
         <img src="/Circle.gif" alt="Noir Logo" className={`w-full h-full will-change-transform ${pulsing && voiceChatEnabled ? 'animate-pulse' : ''}`} style={{
         filter: currentTheme === 'dark' ? `invert(100%) ${voiceChatEnabled && (isListening && micVolume > 0.1 || !isListening && voiceLevelRef.current > 0.1) ? `saturate(${1 + (isListening ? micVolume * 2 : voiceLevelRef.current * 2)})` : ''}` : `${voiceChatEnabled && (isListening && micVolume > 0.1 || !isListening && voiceLevelRef.current > 0.1) ? `saturate(${1 + (isListening ? micVolume * 1.5 : voiceLevelRef.current * 1.5)})` : ''}`,
@@ -163,22 +163,22 @@ export const NoirLogo = ({
       }} />
       </div>
       {/* Logo text */}
-      <div className="text-center mt-6">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-wider text-blue-800/80 dark:text-blue-100">
+      <div className="text-center mt-3 xs:mt-4 sm:mt-6">
+        <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-bold tracking-wider text-blue-800/80 dark:text-blue-100">
           {t('jarvis')}
         </h1>
-        <p className="text-xs md:text-sm text-blue-800/60 dark:text-blue-200/80 mt-1">
+        <p className="text-[10px] xs:text-xs sm:text-sm text-blue-800/60 dark:text-blue-200/80 mt-0.5 xs:mt-1">
           {t('jarvisFullName')}
         </p>
         {/* Voice chat status */}
-        <div className="mt-4 flex items-center justify-center">
-          <div className={`px-3 py-1 rounded-full text-xs md:text-sm font-medium
+        <div className="mt-2 xs:mt-3 sm:mt-4 flex items-center justify-center">
+          <div className={`px-1.5 xs:px-2 sm:px-3 py-0.5 xs:py-1 rounded-full text-[10px] xs:text-xs md:text-sm font-medium
               ${voiceChatEnabled ? 'bg-blue-100/50 dark:bg-blue-900/50 text-blue-800/80 dark:text-blue-200' : 'bg-gray-100/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400'}`}>
             {t('voiceChat')}: {voiceChatEnabled ? t('enabled') : t('disabled')}
           </div>
         </div>
         {/* Click to toggle instruction */}
-        <p className="text-xs text-blue-800/60 dark:text-blue-300/70 mt-2">
+        <p className="text-[8px] xs:text-[10px] sm:text-xs text-blue-800/60 dark:text-blue-300/70 mt-1 xs:mt-2">
           {t('clickToToggle').replace('{action}', voiceChatEnabled ? t('disable') : t('enable'))}
         </p>
       </div>

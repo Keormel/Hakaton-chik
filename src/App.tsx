@@ -10,7 +10,7 @@ function AppContent() {
     currentTheme
   } = useTheme();
   const [showChat, setShowChat] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [voiceChatEnabled, setVoiceChatEnabled] = useState(false);
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -225,12 +225,12 @@ function AppContent() {
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onSelectChat={handleSelectChat} events={events} />
       {/* Main Content */}
-      <div className={`flex-1 flex flex-col items-center justify-center relative transition-all duration-300 ${sidebarOpen ? 'ml-16 md:ml-64' : 'ml-0'}`}>
+      <div className="flex-1 flex flex-col items-center justify-center relative transition-all duration-300">
         {showChat ? <ChatArea voiceChatEnabled={voiceChatEnabled} onSendMessage={handleSendMessage} messages={messages} selectedEventId={selectedChatId} events={events} /> : <div className="flex-1 flex flex-col items-center justify-center">
             <NoirLogo voiceChatEnabled={voiceChatEnabled} toggleVoiceChat={toggleVoiceChat} />
           </div>}
         {/* Centered Input Bar */}
-        {!showChat && <div className="absolute bottom-8 left-0 right-0 mx-auto flex justify-center px-4">
+        {!showChat && <div className="absolute bottom-4 sm:bottom-8 left-0 right-0 mx-auto flex justify-center px-3 sm:px-4">
             <div className="w-full max-w-xl">
               <MessageInput onSendMessage={handleSendMessage} voiceChatEnabled={voiceChatEnabled} />
             </div>

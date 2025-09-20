@@ -36,16 +36,20 @@ export const MessageInput = memo(function MessageInput({
         {/* Simplified container with fewer nested divs */}
         <div className="relative rounded-full overflow-hidden p-[1px] bg-gradient-to-r from-white/40 to-white/10 dark:from-blue-500/30 dark:to-blue-600/10 shadow-lg">
           <div className="relative flex items-center bg-gradient-to-r from-white/30 to-white/20 dark:from-gray-800/80 dark:to-gray-800/60 backdrop-blur-md rounded-full border border-white/30 dark:border-blue-400/30 overflow-hidden">
-            <input type="text" value={message} onChange={handleMessageChange} placeholder={t('askMeAnything')} className="w-full py-4 px-6 pr-[90px] bg-transparent focus:outline-none placeholder-blue-400/50 dark:placeholder-blue-300/60 text-blue-800 dark:text-blue-100" />
-            <div className="absolute right-2 flex space-x-1">
-              <button type="button" onClick={toggleRecording} className={`p-2.5 rounded-full transition-colors duration-200
+            <input type="text" value={message} onChange={handleMessageChange} placeholder={t('askMeAnything')} className="w-full py-2 xs:py-3 sm:py-4 px-3 xs:px-4 sm:px-6 pr-[70px] xs:pr-[80px] sm:pr-[90px] bg-transparent focus:outline-none placeholder-blue-400/50 dark:placeholder-blue-300/60 text-xs xs:text-sm sm:text-base text-blue-800 dark:text-blue-100" />
+            <div className="absolute right-1 xs:right-1.5 sm:right-2 flex space-x-1">
+              <button type="button" onClick={toggleRecording} className={`p-1.5 xs:p-2 sm:p-2.5 rounded-full transition-colors duration-200
                 ${isRecording ? 'bg-red-500/80 text-white animate-pulse' : voiceChatEnabled ? 'hover:bg-blue-100/50 dark:hover:bg-blue-700/50 text-blue-500 dark:text-blue-300' : 'text-blue-300 dark:text-blue-500/50 cursor-not-allowed'}`} aria-label={isRecording ? 'Stop recording' : 'Voice input'} disabled={!voiceChatEnabled}>
-                {isRecording ? <StopCircleIcon size={20} /> : <MicIcon size={20} />}
+                {isRecording ? <StopCircleIcon size={16} className="xs:hidden" /> : <MicIcon size={16} className="xs:hidden" />}
+                {isRecording ? <StopCircleIcon size={18} className="hidden xs:block sm:hidden" /> : <MicIcon size={18} className="hidden xs:block sm:hidden" />}
+                {isRecording ? <StopCircleIcon size={20} className="hidden sm:block" /> : <MicIcon size={20} className="hidden sm:block" />}
               </button>
-              <button type="submit" disabled={isSubmitDisabled} className={`p-2.5 rounded-full transition-colors duration-200 ${isSubmitDisabled ? 'opacity-50 cursor-not-allowed' : ''}`} style={{
+              <button type="submit" disabled={isSubmitDisabled} className={`p-1.5 xs:p-2 sm:p-2.5 rounded-full transition-colors duration-200 ${isSubmitDisabled ? 'opacity-50 cursor-not-allowed' : ''}`} style={{
               background: currentTheme === 'dark' ? 'linear-gradient(135deg, rgba(59,130,246,0.9) 0%, rgba(37,99,235,1) 100%)' : 'linear-gradient(135deg, rgba(59,130,246,0.8) 0%, rgba(37,99,235,0.9) 100%)'
             }} aria-label="Send message">
-                <SendIcon size={20} className="text-white" />
+                <SendIcon size={16} className="text-white xs:hidden" />
+                <SendIcon size={18} className="text-white hidden xs:block sm:hidden" />
+                <SendIcon size={20} className="text-white hidden sm:block" />
               </button>
             </div>
           </div>

@@ -1,5 +1,5 @@
-import React, { useCallback, useState, memo } from 'react';
-import { PlusIcon, CalendarIcon, SettingsIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon, SearchIcon } from 'lucide-react';
+import React, { useCallback, useEffect, useState, memo } from 'react';
+import { PlusIcon, CalendarIcon, SettingsIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon, SearchIcon, MenuIcon, XIcon } from 'lucide-react';
 import { Settings } from './Settings';
 import { ProfileModal } from './ProfileModal';
 import { useLanguage } from '../context/LanguageContext';
@@ -12,28 +12,28 @@ const EventItem = memo(({
 }) => {
   // Check if event date is in the new format
   const hasFormattedDate = event.date && event.date.includes('\n');
-  return <div onClick={() => handleSelectEvent(event.id)} className="flex items-start px-3 py-2 my-1 rounded-lg 
+  return <div onClick={() => handleSelectEvent(event.id)} className="flex items-start px-2 py-2 my-0.5 rounded-lg 
       hover:bg-blue-100/30 dark:hover:bg-blue-800/50
       cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]
       relative">
       <CalendarIcon size={16} className="text-blue-800/60 dark:text-blue-200 mt-0.5 flex-shrink-0" />
-      <div className="hidden md:block ml-3 flex-1 min-w-0">
+      <div className="ml-3 flex-1 min-w-0">
         <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-blue-800/80 dark:text-blue-100 truncate">
+          <span className="text-xs font-medium text-blue-800/80 dark:text-blue-100 truncate max-w-[120px]">
             {event.title}
           </span>
-          {!hasFormattedDate && <span className="text-xs text-blue-800/50 dark:text-blue-300/70 ml-2 flex-shrink-0">
+          {!hasFormattedDate && <span className="text-[10px] text-blue-800/50 dark:text-blue-300/70 ml-2 flex-shrink-0">
               {event.date}
             </span>}
         </div>
-        <p className="text-xs text-blue-800/60 dark:text-blue-200/80 truncate mt-0.5">
+        <p className="text-[10px] text-blue-800/60 dark:text-blue-200/80 truncate mt-0.5">
           {event.preview}
         </p>
         {hasFormattedDate && <div className="flex flex-col mt-1">
-            <span className="text-xs text-blue-800/50 dark:text-blue-300/70">
+            <span className="text-[10px] text-blue-800/50 dark:text-blue-300/70">
               {event.date.split('\n')[0]}
             </span>
-            <span className="text-xs text-blue-800/50 dark:text-blue-300/70">
+            <span className="text-[10px] text-blue-800/50 dark:text-blue-300/70">
               {event.formattedDate || event.date.split('\n')[1]}
             </span>
           </div>}
@@ -52,30 +52,49 @@ export const Sidebar = memo(function Sidebar({
   const [searchQuery, setSearchQuery] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
   const {
     t
   } = useLanguage();
   const {
     currentTheme
   } = useTheme();
+  // Check if we're on mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    // Check on mount and window resize
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   // Memoized filter function to avoid recalculating on every render
   const filteredEvents = searchQuery ? events.filter(event => event.title.toLowerCase().includes(searchQuery.toLowerCase()) || event.preview.toLowerCase().includes(searchQuery.toLowerCase())) : events;
   // Memoized handlers to prevent recreating functions on each render
   const handleToggle = useCallback(() => {
     setIsAnimating(true);
     setIsOpen(!isOpen);
-    setTimeout(() => setIsAnimating(false), 300); // Reduced from 500ms to 300ms for faster response
+    setTimeout(() => setIsAnimating(false), 300);
   }, [isOpen, setIsOpen]);
   const handleSelectEvent = useCallback(eventId => {
     if (onSelectChat) {
       onSelectChat(eventId);
+      // Close sidebar on mobile after selecting an event
+      if (isMobile) {
+        setIsOpen(false);
+      }
     }
-  }, [onSelectChat]);
+  }, [onSelectChat, isMobile, setIsOpen]);
   const handleNewEvent = useCallback(() => {
     if (onSelectChat) {
       onSelectChat('new');
+      // Close sidebar on mobile after creating a new event
+      if (isMobile) {
+        setIsOpen(false);
+      }
     }
-  }, [onSelectChat]);
+  }, [onSelectChat, isMobile, setIsOpen]);
   const handleConfirmDelete = useCallback(() => {
     if (eventToDelete) {
       // Dispatch the clear event
@@ -91,13 +110,21 @@ export const Sidebar = memo(function Sidebar({
   }, [eventToDelete]);
   const handleOpenSettings = useCallback(() => {
     setShowSettings(true);
-  }, []);
+    // Close sidebar on mobile when opening settings
+    if (isMobile) {
+      setIsOpen(false);
+    }
+  }, [isMobile, setIsOpen]);
   const handleCloseSettings = useCallback(() => {
     setShowSettings(false);
   }, []);
   const handleOpenProfile = useCallback(() => {
     setShowProfile(true);
-  }, []);
+    // Close sidebar on mobile when opening profile
+    if (isMobile) {
+      setIsOpen(false);
+    }
+  }, [isMobile, setIsOpen]);
   const handleCloseProfile = useCallback(() => {
     setShowProfile(false);
   }, []);
@@ -105,92 +132,105 @@ export const Sidebar = memo(function Sidebar({
   const handleSearchChange = useCallback(e => {
     setSearchQuery(e.target.value);
   }, []);
-  return <div className="relative">
-      {/* Settings Modal - Only render when needed */}
-      {showSettings && <Settings isOpen={true} onClose={handleCloseSettings} />}
-      {/* Profile Modal - Only render when needed */}
-      {showProfile && <ProfileModal isOpen={true} onClose={handleCloseProfile} />}
-      {/* Confirmation Dialog - Moved to top level */}
-      <ConfirmationDialog isOpen={showConfirmDialog} onClose={() => setShowConfirmDialog(false)} onConfirm={handleConfirmDelete} title={t('confirmClearTitle')} message={t('confirmClearMessage')} />
-      {/* Sidebar Container */}
-      <div className={`fixed top-0 left-0 h-screen z-30 
-        transition-all duration-300 ease-out
-        ${isOpen ? 'w-16 md:w-64' : 'w-0'}`}>
-        {/* Sidebar Content */}
-        <div className={`h-full flex flex-col bg-white/20 dark:bg-gray-900/80 backdrop-blur-xl 
-          border-r border-white/30 dark:border-blue-400/20 rounded-r-3xl
-          transition-all duration-300 ease-out
-          overflow-hidden will-change-transform
-          ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full pointer-events-none'}`}>
-          {/* Top spacing */}
-          <div className="h-16"></div>
-          {/* New Event Button */}
-          <div className="px-4 mb-4">
-            <button onClick={handleNewEvent} className="flex items-center justify-center md:justify-start w-full bg-gradient-to-r 
-              from-blue-500/70 to-blue-600/70 dark:from-blue-500/90 dark:to-blue-600/90 backdrop-blur-sm 
-              hover:from-blue-600/70 hover:to-blue-700/70 dark:hover:from-blue-400/90 dark:hover:to-blue-500/90 
-              text-white rounded-xl py-2 px-3 transition-all duration-200
-              hover:scale-[1.02] active:scale-[0.98]">
-              <PlusIcon size={18} />
-              <span className="hidden md:inline ml-2 font-medium">
-                {t('newRequest')}
-              </span>
+  return <>
+      {/* Mobile overlay backdrop */}
+      {isMobile && isOpen && <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-20" onClick={() => setIsOpen(false)}></div>}
+      <div className="relative">
+        {/* Settings Modal - Only render when needed */}
+        {showSettings && <Settings isOpen={true} onClose={handleCloseSettings} />}
+        {/* Profile Modal - Only render when needed */}
+        {showProfile && <ProfileModal isOpen={true} onClose={handleCloseProfile} />}
+        {/* Confirmation Dialog - Moved to top level */}
+        <ConfirmationDialog isOpen={showConfirmDialog} onClose={() => setShowConfirmDialog(false)} onConfirm={handleConfirmDelete} title={t('confirmClearTitle')} message={t('confirmClearMessage')} />
+        {/* Mobile Hamburger Menu Button - Only visible on small screens */}
+        {isMobile && !isOpen && <div className="fixed top-3 left-3 z-30">
+            <button onClick={handleToggle} className="p-2 rounded-full bg-white/70 dark:bg-blue-900/70 backdrop-blur-md 
+              border border-white/30 dark:border-blue-400/30
+              shadow-lg hover:bg-white/80 dark:hover:bg-blue-800/80 transition-all duration-200" aria-label="Open menu">
+              <MenuIcon size={20} className="text-blue-800/70 dark:text-blue-200" />
             </button>
+          </div>}
+        {/* Sidebar Container */}
+        <div className={`fixed top-0 left-0 h-screen z-30 
+          transition-all duration-300 ease-out
+          ${isMobile ? isOpen ? 'w-[260px]' : 'w-0' : isOpen ? 'w-10 xs:w-12 sm:w-16 md:w-64' : 'w-0'}`}>
+          {/* Sidebar Content */}
+          <div className={`h-full flex flex-col bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl 
+            border-r border-white/30 dark:border-blue-400/20 rounded-r-xl
+            transition-all duration-300 ease-out
+            overflow-hidden will-change-transform
+            ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full pointer-events-none'}`}>
+            {/* Top section with close button on mobile */}
+            <div className="flex items-center justify-between p-3 border-b border-blue-200/30 dark:border-blue-500/30">
+              <h2 className="text-sm font-semibold text-blue-800/80 dark:text-blue-200">
+                {t('events')}
+              </h2>
+              {isMobile && <button onClick={handleToggle} className="p-1.5 rounded-full hover:bg-white/30 dark:hover:bg-gray-700/80" aria-label="Close menu">
+                  <XIcon size={18} className="text-blue-800/70 dark:text-blue-200" />
+                </button>}
+            </div>
+            {/* New Event Button */}
+            <div className="px-3 py-3">
+              <button onClick={handleNewEvent} className="flex items-center justify-center w-full bg-gradient-to-r 
+                from-blue-500/70 to-blue-600/70 dark:from-blue-500/90 dark:to-blue-600/90 backdrop-blur-sm 
+                hover:from-blue-600/70 hover:to-blue-700/70 dark:hover:from-blue-400/90 dark:hover:to-blue-500/90 
+                text-white rounded-lg py-2 px-3 transition-all duration-200
+                hover:scale-[1.02] active:scale-[0.98]">
+                <PlusIcon size={16} className="mr-2" />
+                <span className="font-medium text-sm">{t('newRequest')}</span>
+              </button>
+            </div>
+            {/* Search Box */}
+            <div className="px-3 mb-1">
+              <div className="relative">
+                <input type="text" placeholder={t('searchEvents')} value={searchQuery} onChange={handleSearchChange} className="w-full py-2 pl-8 pr-3 bg-white/30 dark:bg-gray-800/60 backdrop-blur-md 
+                  border border-white/30 dark:border-blue-400/30
+                  rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 dark:focus:ring-blue-400/50
+                  placeholder-blue-400/50 dark:placeholder-blue-300/60 
+                  text-xs text-blue-800 dark:text-blue-100" />
+                <SearchIcon size={14} className="absolute left-3 top-2.5 text-blue-400/70 dark:text-blue-300/80" />
+              </div>
+            </div>
+            {/* Divider */}
+            <div className="border-t border-blue-200/30 dark:border-blue-500/30 my-1"></div>
+            {/* Events List */}
+            <div className="flex-1 overflow-y-auto px-1 scrollbar-hide">
+              {filteredEvents.length === 0 ? <div className="px-3 py-3 text-xs text-blue-800/60 dark:text-blue-200/80 text-center">
+                  {t('noEventsFound')}
+                </div> : filteredEvents.map(event => <EventItem key={event.id} event={event} handleSelectEvent={handleSelectEvent} />)}
+            </div>
+            {/* Bottom Section */}
+            <div className="mt-auto border-t border-blue-200/30 dark:border-blue-500/30 pt-3 px-3 pb-3">
+              <div onClick={handleOpenProfile} className="flex items-center px-3 py-2 rounded-lg 
+                hover:bg-blue-100/30 dark:hover:bg-blue-800/50
+                cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]
+                mb-1">
+                <UserIcon size={16} className="text-blue-800/60 dark:text-blue-200" />
+                <span className="ml-3 text-sm text-blue-800/80 dark:text-blue-100">
+                  {t('profile')}
+                </span>
+              </div>
+              <div onClick={handleOpenSettings} className="flex items-center px-3 py-2 rounded-lg 
+                hover:bg-blue-100/30 dark:hover:bg-blue-800/50 
+                cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]">
+                <SettingsIcon size={16} className="text-blue-800/60 dark:text-blue-200" />
+                <span className="ml-3 text-sm text-blue-800/80 dark:text-blue-100">
+                  {t('settings')}
+                </span>
+              </div>
+            </div>
           </div>
-          {/* Search Box */}
-          <div className="px-4 mb-2">
-            <div className="relative">
-              <input type="text" placeholder={t('searchEvents')} value={searchQuery} onChange={handleSearchChange} className="w-full py-2 pl-8 pr-3 bg-white/30 dark:bg-gray-800/60 backdrop-blur-md 
+          {/* Desktop Toggle Button - Only visible on larger screens */}
+          {!isMobile && <div className={`absolute top-3 transition-all duration-300
+              ${isOpen ? 'right-3' : 'left-3'}`}>
+              <button onClick={handleToggle} className={`p-2 rounded-full bg-white/40 dark:bg-blue-900/60 backdrop-blur-md 
                 border border-white/30 dark:border-blue-400/30
-                rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30 dark:focus:ring-blue-400/50
-                placeholder-blue-400/50 dark:placeholder-blue-300/60 
-                text-blue-800 dark:text-blue-100 text-sm" />
-              <SearchIcon size={14} className="absolute left-3 top-2.5 text-blue-400/70 dark:text-blue-300/80" />
-            </div>
-          </div>
-          {/* Divider */}
-          <div className="border-t border-blue-200/30 dark:border-blue-500/30 my-2"></div>
-          {/* Events List - Optimized with virtualization for better performance */}
-          <div className="flex-1 overflow-y-auto px-2 scrollbar-hide">
-            <div className="hidden md:block text-xs text-blue-900/50 dark:text-blue-300/80 font-medium px-4 py-2 uppercase">
-              {t('events')}
-            </div>
-            {filteredEvents.length === 0 ? <div className="px-4 py-3 text-sm text-blue-800/60 dark:text-blue-200/80 text-center">
-                {t('noEventsFound')}
-              </div> :
-          // Only render visible events for better performance
-          filteredEvents.map(event => <EventItem key={event.id} event={event} handleSelectEvent={handleSelectEvent} />)}
-          </div>
-          {/* Bottom Section */}
-          <div className="mt-auto border-t border-blue-200/30 dark:border-blue-500/30 pt-4 px-4 pb-4">
-            <div onClick={handleOpenProfile} className="flex items-center px-3 py-2 rounded-lg 
-              hover:bg-blue-100/30 dark:hover:bg-blue-800/50
-              cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]">
-              <UserIcon size={16} className="text-blue-800/60 dark:text-blue-200" />
-              <span className="hidden md:inline ml-3 text-sm text-blue-800/80 dark:text-blue-100">
-                {t('profile')}
-              </span>
-            </div>
-            <div onClick={handleOpenSettings} className="flex items-center px-3 py-2 rounded-lg 
-              hover:bg-blue-100/30 dark:hover:bg-blue-800/50 
-              cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]">
-              <SettingsIcon size={16} className="text-blue-800/60 dark:text-blue-200" />
-              <span className="hidden md:inline ml-3 text-sm text-blue-800/80 dark:text-blue-100">
-                {t('settings')}
-              </span>
-            </div>
-          </div>
-        </div>
-        {/* Toggle Button - Now positioned correctly within the sidebar when open */}
-        <div className={`absolute top-3 transition-all duration-300
-          ${isOpen ? 'right-3' : 'left-3'}`}>
-          <button onClick={handleToggle} className={`p-2.5 rounded-full bg-white/40 dark:bg-blue-900/60 backdrop-blur-md 
-            border border-white/30 dark:border-blue-400/30
-            shadow-md hover:bg-white/50 dark:hover:bg-blue-800/70 transition-all duration-200
-            ${isAnimating ? 'scale-90' : 'scale-100'}`} aria-label={isOpen ? 'Close sidebar' : 'Open sidebar'}>
-            {isOpen ? <ChevronLeftIcon size={18} className="text-blue-800/70 dark:text-blue-200" /> : <ChevronRightIcon size={18} className="text-blue-800/70 dark:text-blue-200" />}
-          </button>
+                shadow-md hover:bg-white/50 dark:hover:bg-blue-800/70 transition-all duration-200
+                ${isAnimating ? 'scale-90' : 'scale-100'}`} aria-label={isOpen ? 'Close sidebar' : 'Open sidebar'}>
+                {isOpen ? <ChevronLeftIcon size={16} className="text-blue-800/70 dark:text-blue-200" /> : <ChevronRightIcon size={16} className="text-blue-800/70 dark:text-blue-200" />}
+              </button>
+            </div>}
         </div>
       </div>
-    </div>;
+    </>;
 });
